@@ -499,6 +499,16 @@ export default function PixSimulatorPage() {
                     <h2 className="text-base font-semibold text-white">Simular Transaccion PIX</h2>
                     <p className="text-xs text-blue-100/70 mt-0.5">Flujo bancario local dentro de Brasil</p>
                   </div>
+                  {/* Audit 4 Y4 — disclosure de honestidad académica:
+                       /api/simulate/pix devuelve random pass/fail; NO pasa
+                       por el pipeline ISO 20022 (eso vive en el modo Intl). */}
+                  <div className="px-5 pt-4">
+                    <div className="text-xs px-3 py-2 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-200">
+                      <strong>Modo Local — demo shortcut.</strong> Este endpoint <code>/api/simulate/pix</code> NO pasa
+                      por el pipeline ISO 20022 (canónico pacs.008 + routing + RabbitMQ + adapter). Para el flujo real
+                      cross-border ver la pestaña <strong>Simulacion Internacional</strong>.
+                    </div>
+                  </div>
                   <form onSubmit={localForm.handleSubmit(onLocalSubmit)} className="p-5 space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
