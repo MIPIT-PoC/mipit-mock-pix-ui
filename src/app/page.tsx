@@ -328,8 +328,10 @@ export default function PixSimulatorPage() {
   const [payment, setPayment]   = useState<PaymentDetail | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Audit 4 — /admin/* y /api/simulate/* viven en mock-server (:9001),
+  // NO en health-server (:9101 que sólo expone /health y /metrics).
   const apiUrl     = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
-  const adapterUrl = process.env.NEXT_PUBLIC_ADAPTER_URL  || 'http://localhost:9101';
+  const adapterUrl = process.env.NEXT_PUBLIC_ADAPTER_URL  || 'http://localhost:9001';
 
   const localForm = useForm<LocalValues>({
     resolver: zodResolver(localSchema),
