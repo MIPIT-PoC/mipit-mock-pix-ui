@@ -156,7 +156,8 @@ function BankingSimulator({ adapterUrl, rejectCodes }: { adapterUrl: string; rej
       if (!res.ok) return;
       const data: AdapterStats = await res.json();
       setStats(data);
-      setConfig(data.config);
+      // Audit 4 Y13 — adapter devuelve rejectionRate en 0-1; UI lo muestra 0-100.
+      setConfig({ ...data.config, rejectionRate: Math.round(data.config.rejectionRate * 100) });
     } catch { /* offline */ } finally { setStatsLoading(false); }
   }, [adapterUrl]);
 
@@ -169,8 +170,11 @@ function BankingSimulator({ adapterUrl, rejectCodes }: { adapterUrl: string; rej
   const saveConfig = async () => {
     try {
       setActionLoading('config');
+      // Audit 4 Y13 — UI mantiene rejectionRate en 0-100 (slider),
+      // adapter clampea 0-1. Dividimos antes de enviar.
+      const payload = { ...config, rejectionRate: config.rejectionRate / 100 };
       const res = await fetch(`${adapterUrl}/admin/config`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       toast.success('Configuracion guardada');
@@ -336,21 +340,24 @@ export default function PixSimulatorPage() {
   const localForm = useForm<LocalValues>({
     resolver: zodResolver(localSchema),
     defaultValues: {
-      debtorAlias: 'PIX-11999887766', debtorName: 'Joao Silva',
-      creditorAlias: 'PIX-cpf@email.com', creditorName: 'Maria Santos',
+      // Audit 4 Y14 — defaults con CPF mod-11 válido + DICT email shape.
+      debtorAlias: 'PIX-12345678909', debtorName: 'João Silva',
+      creditorAlias: 'PIX-maria.santos@mipit.test', creditorName: 'Maria Santos',
       amount: 100.50, currency: 'BRL', purpose: 'P2P', reference: 'PIX-TEST-001',
     },
   });
 
+  // Audit 4 Y14 — CLABE mod-10 + NIT DIAN mod-11 / phone mobile-only TR-002.
   const DEST_DEFAULTS: Record<DestRail, { alias: string; name: string }> = {
-    SPEI: { alias: 'SPEI-002180012345678901', name: 'Maria Garcia' },
-    BREB: { alias: 'BREB-+573005551234',      name: 'Ana Lopez'   },
+    SPEI: { alias: 'SPEI-002180012345678906', name: 'María García' },
+    BREB: { alias: 'BREB-+573001234567',      name: 'Ana López'   },
   };
 
   const intlForm = useForm<IntlValues>({
     resolver: zodResolver(intlSchema),
     defaultValues: {
-      debtorAlias: 'PIX-11999887766', debtorName: 'Joao Silva',
+      // Audit 4 Y14 — CPF válido.
+      debtorAlias: 'PIX-12345678909', debtorName: 'João Silva',
       creditorAlias: DEST_DEFAULTS.SPEI.alias, creditorName: DEST_DEFAULTS.SPEI.name,
       amount: 100.50, reference: 'PIX-INTL-001',
     },
@@ -362,9 +369,23 @@ export default function PixSimulatorPage() {
     intlForm.setValue('creditorName',  DEST_DEFAULTS[rail].name);
   };
 
+  // Audit 4 Y1 — el core devuelve { access_token, token_type, expires_in };
+  // antes leíamos { token } → Bearer undefined → 401 silencioso.
+  async function getToken(): Promise<string> {
+    const r = await fetch(`${apiUrl}/auth/token`, { method: 'POST' });
+    if (!r.ok) throw new Error(`auth/token HTTP ${r.status}`);
+    const j = (await r.json()) as { access_token?: string };
+    return j.access_token ?? '';
+  }
+
   const pollPayment = useCallback(async (id: string) => {
     try {
-      const res = await fetch(`${apiUrl}/payments/${id}`);
+      // Audit 4 Y3 — antes /payments/:id sin Authorization → 401 silencioso →
+      // spinner perpetuo + toast falso. Reusamos el token del Intl flow.
+      const token = await getToken().catch(() => '');
+      const res = await fetch(`${apiUrl}/payments/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!res.ok) return;
       const data: PaymentDetail = await res.json();
       setPayment(data);
@@ -382,7 +403,9 @@ export default function PixSimulatorPage() {
   const onLocalSubmit = async (data: LocalValues) => {
     try {
       setLocalStatus('loading');
-      const res = await fetch(`${apiUrl}/api/simulate/pix`, {
+      // Audit 4 Y2 — /api/simulate/pix vive en el mock-server (:9001), NO
+      // en el core (:8080). Antes hacía fetch a apiUrl → 404.
+      const res = await fetch(`${adapterUrl}/api/simulate/pix`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -399,8 +422,7 @@ export default function PixSimulatorPage() {
     try {
       setIntlStatus('loading');
       setPayment(null);
-      const tokenRes = await fetch(`${apiUrl}/auth/token`);
-      const { token } = tokenRes.ok ? await tokenRes.json() : { token: '' };
+      const token = await getToken().catch(() => '');
       const body = {
         amount: data.amount, currency: 'BRL',
         debtor:   { alias: data.debtorAlias,  name: data.debtorName  || undefined },
