@@ -513,7 +513,7 @@ export default function PixSimulatorPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-zinc-400 mb-1">Alias Ordenante</label>
-                        <input {...localForm.register('debtorAlias')} placeholder="PIX-11999887766" className={`${inp} font-mono`} />
+                        <input {...localForm.register('debtorAlias')} placeholder="PIX-12345678909" className={`${inp} font-mono`} />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-zinc-400 mb-1">Nombre Ordenante</label>
@@ -573,7 +573,7 @@ export default function PixSimulatorPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-zinc-400 mb-1">Alias Ordenante</label>
-                        <input {...intlForm.register('debtorAlias')} placeholder="PIX-11999887766" className={`${inp} font-mono`} />
+                        <input {...intlForm.register('debtorAlias')} placeholder="PIX-12345678909" className={`${inp} font-mono`} />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-zinc-400 mb-1">Nombre Ordenante</label>
