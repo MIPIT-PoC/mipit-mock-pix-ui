@@ -8,8 +8,12 @@ WORKDIR /app
 # (NEXT_PUBLIC_API_BASE_URL); además faltaba NEXT_PUBLIC_ADAPTER_URL.
 ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 ARG NEXT_PUBLIC_ADAPTER_URL=http://localhost:9001
+# VM split: basePath de Next para servir la UI bajo /mock-pix detrás de nginx.
+# En local dev: NEXT_PUBLIC_BASE_PATH="" (vacío) → corre en root.
+ARG NEXT_PUBLIC_BASE_PATH=""
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_ADAPTER_URL=$NEXT_PUBLIC_ADAPTER_URL
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
 COPY package*.json ./
 RUN npm install
