@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * @file page.tsx
+ * @description Top-level page of the PIX simulator UI, exposing the Local simulation, the cross-border Intl payment flow toward SPEI/BRE_B and the bank adapter control panel with live stats and timeline.
+ * @author Nicolás Calderón
+ * @project MIPIT-PoC — Cross-border Instant Payments Middleware
+ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

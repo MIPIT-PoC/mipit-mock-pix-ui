@@ -1,4 +1,10 @@
 /**
+ * @file next.config.mjs
+ * @description Next.js build configuration for the PIX mock UI, wiring the basePath/assetPrefix to NEXT_PUBLIC_BASE_PATH for standalone and nginx-fronted deployments.
+ * @author Carlos Mejía
+ * @project MIPIT-PoC — Cross-border Instant Payments Middleware
+ */
+/**
  * Next.js config — PIX mock UI.
  *
  * basePath se setea via NEXT_PUBLIC_BASE_PATH (build arg).
